@@ -2,12 +2,16 @@
   "schemaVersion": 1,
   "id": "mcx424.grok-bot",
   "name": "Grok Bot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "McX424",
-  "description": "Bar chip to open or focus the Grok Bot desktop app — floating, tiled, or scratchpad. Does not embed the app.",
+  "description": "Bar chip to open or focus the Grok Bot desktop app \u2014 floating, tiled, or scratchpad. Does not embed the app.",
   "license": "MIT",
-  "kinds": ["bar-widget"],
-  "entryPoints": { "barWidget": "BarWidget.qml" },
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
   "barWidget": {
     "displayName": "Grok Bot",
     "category": "Apps",
@@ -16,18 +20,42 @@
     "defaults": {
       "command": "grok-bot",
       "windowClass": "grok-bot",
-      "floatWidth": 0.70,
+      "floatWidth": 0.7,
       "floatHeight": 0.75,
       "showLabel": true,
       "chipText": "Grok Bot"
     },
     "schema": [
-      { "key": "command", "type": "string", "label": "Launch command (PATH)" },
-      { "key": "windowClass", "type": "string", "label": "Hyprland window class" },
-      { "key": "floatWidth", "type": "number", "label": "Float width (fraction of monitor or px)" },
-      { "key": "floatHeight", "type": "number", "label": "Float height (fraction of monitor or px)" },
-      { "key": "showLabel", "type": "bool", "label": "Show chip text" },
-      { "key": "chipText", "type": "string", "label": "Chip text" }
+      {
+        "key": "command",
+        "type": "string",
+        "label": "Launch command (PATH)"
+      },
+      {
+        "key": "windowClass",
+        "type": "string",
+        "label": "Hyprland window class"
+      },
+      {
+        "key": "floatWidth",
+        "type": "number",
+        "label": "Float width (fraction of monitor or px)"
+      },
+      {
+        "key": "floatHeight",
+        "type": "number",
+        "label": "Float height (fraction of monitor or px)"
+      },
+      {
+        "key": "showLabel",
+        "type": "bool",
+        "label": "Show chip text"
+      },
+      {
+        "key": "chipText",
+        "type": "string",
+        "label": "Chip text"
+      }
     ]
   }
 }
