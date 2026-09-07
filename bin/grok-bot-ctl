@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Launch, focus, float, tile, or scratchpad the Grok Bot window (Hyprland / Omarchy).
+set -euo pipefail
+
+MODE="${1:-float}"
+CMD="${GROK_BOT_CMD:-grok-bot}"
+CLASS="${GROK_BOT_CLASS:-grok-bot}"
+# Fractions of focused monitor (0–1), or absolute px if > 1
+FW="${2:-0.70}"
+FH="${3:-0.75}"
+
+hypr_dispatch() {
+  local lua="$1"
+  shift
+  hyprctl dispatch "$lua" >/dev/null 2>&1 || hyprctl dispatch "$@" >/dev/null 2>&1 || true
+}
+
+find_addr() {
+  hyprctl clients -j 2>/dev/null | jq -r --arg c "$CLASS" '
+    .[] | select((.class // "") | test("^" + $c + "$"; "i")) | .address
+  ' | head -n1
+}
+
+wait_addr() {
+  local i=0 addr=""
+  while (( i < 50 )); do
+    addr=$(find_addr)
+    if [[ -n $addr && $addr != null ]]; then
+      printf '%s\n' "$addr"
+      return 0
+    fi
+    sleep 0.1
+    ((i++)) || true
+  done
+  return 1
+}
+
+monitor_size() {
+  # focused monitor width height
+  hyprctl monitors -j 2>/dev/null | jq -r '
+    (map(select(.focused==true))[0] // .[0]) | "\(.width) \(.height)"
+  '
+}
+
+pixel_size() {
+  local frac_or_px="$1" dim="$2"
+  awk -v v="$frac_or_px" -v d="$dim" 'BEGIN {
+    if (v+0 > 1) { printf "%d", int(v+0.5); exit }
+    printf "%d", int(d * v + 0.5)
+  }'
+}
+
+ensure_running() {
+  local addr
+  addr=$(find_addr)
+  if [[ -n ${addr:-} && $addr != null ]]; then
+    printf '%s\n' "$addr"
+    return 0
+  fi
+  # Prefer uwsm-app when available (Omarchy)
+  if command -v uwsm-app >/dev/null 2>&1; then
+    setsid uwsm-app -- "$CMD" >/dev/null 2>&1 &
+  else
+    setsid "$CMD" >/dev/null 2>&1 &
+  fi
+  wait_addr
+}
+
+addr_of() {
+  local a
+  a=$(ensure_running) || {
+    echo "grok-bot-ctl: could not find window class=$CLASS" >&2
+    exit 1
+  }
+  printf '%s\n' "$a"
+}
+
+case "$MODE" in
+  float)
+    ADDR=$(addr_of)
+    hypr_dispatch "hl.dsp.focus({ window = \"address:$ADDR\" })" focuswindow "address:$ADDR"
+    hypr_dispatch "hl.dsp.window.float({ window = \"address:$ADDR\", action = \"set\" })" setfloating "address:$ADDR"
+    read -r MW MH <<<"$(monitor_size)"
+    W=$(pixel_size "$FW" "$MW")
+    H=$(pixel_size "$FH" "$MH")
+    hypr_dispatch "hl.dsp.window.resize({ window = \"address:$ADDR\", x = $W, y = $H })" resizewindowpixel "exact $W $H,address:$ADDR"
+    hypr_dispatch "hl.dsp.window.center({ window = \"address:$ADDR\" })" centerwindow
+    ;;
+  tile)
+    ADDR=$(addr_of)
+    hypr_dispatch "hl.dsp.focus({ window = \"address:$ADDR\" })" focuswindow "address:$ADDR"
+    hypr_dispatch "hl.dsp.window.float({ window = \"address:$ADDR\", action = \"unset\" })" settiled "address:$ADDR"
+    ;;
+  scratch|scratchpad|hide)
+    ADDR=$(addr_of)
+    # Omarchy default scratchpad special workspace (SUPER+S)
+    hypr_dispatch "hl.dsp.window.move({ workspace = \"special:scratchpad\", follow = false })" movetoworkspacesilent "special:scratchpad,address:$ADDR"
+    ;;
+  running)
+    ADDR=$(find_addr)
+    if [[ -n ${ADDR:-} && $ADDR != null ]]; then echo yes; else echo no; fi
+    ;;
+  *)
+    echo "Usage: grok-bot-ctl float|tile|scratch|running [floatWidth] [floatHeight]" >&2
+    exit 2
+    ;;
+esac
