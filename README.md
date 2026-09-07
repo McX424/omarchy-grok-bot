@@ -1,6 +1,6 @@
 # Grok Bot (Omarchy)
 
-Bar chip for the Grok Bot **desktop app** on Omarchy / Hyprland. Opens or focuses the real window — does **not** embed Electron, scrape usage, or wrap a Grok CLI.
+Bar chip for the Grok Bot **desktop app** on Omarchy / Hyprland. Icon-only by default. Opens or focuses the real window — does **not** embed Electron or wrap a CLI.
 
 ## Install
 
@@ -9,30 +9,26 @@ omarchy plugin add https://github.com/McX424/omarchy-grok-bot.git --enable
 omarchy bar put mcx424.grok-bot --section right
 ```
 
-Requires `grok-bot` on `PATH`, `hyprctl`, and `jq`.
-
 ## Clicks
 
 | Click | Action |
 |-------|--------|
-| Left | Open / focus **tiled** (normal window) |
+| Left | Focus **tiled** only (launch if needed). Never toggles float. |
 | Right | Menu: Open/Focus tiled · Open floating · Scratchpad · Quit |
 
-No hover tooltip (on purpose — the right-click menu is the how-to).
+Each menu action **sets** the mode explicitly (no toggle). Floating recenters/resizes; if already floating it stays floating.
 
 ## Settings
 
 | Key | Default | Meaning |
 |-----|---------|---------|
 | `command` | `grok-bot` | Launch command |
-| `windowClass` | `grok-bot` | Hyprland client class |
-| `floatWidth` / `floatHeight` | `0.70` / `0.75` | Float size (monitor fraction or px) |
-| `showLabel` | `true` | Show chip text |
-| `chipText` | `Grok Bot` | Chip label |
+| `windowClass` | `grok-bot` | Hyprland class |
+| `floatWidth` / `floatHeight` | `0.70` / `0.75` | Float size |
+| `showLabel` | `false` | Icon only unless true |
+| `chipText` | `""` | Optional label when `showLabel` |
 
-```bash
-hyprctl clients -j | jq '.[] | {class,title,address}'
-```
+Icon asset: `assets/grok-bot.png` (from the desktop `grok-bot` icon).
 
 ## License
 

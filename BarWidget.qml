@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.Commons
 import qs.Ui
 
 BarWidget {
@@ -11,8 +12,9 @@ BarWidget {
   readonly property string windowClass: String(setting("windowClass", "grok-bot"))
   readonly property real floatWidth: Number(setting("floatWidth", 0.70)) || 0.70
   readonly property real floatHeight: Number(setting("floatHeight", 0.75)) || 0.75
-  readonly property bool showLabel: setting("showLabel", true) !== false
-  readonly property string chipText: String(setting("chipText", "Grok Bot"))
+  // Icon-only by default (Carl UX)
+  readonly property bool showLabel: setting("showLabel", false) === true
+  readonly property string chipText: String(setting("chipText", ""))
 
   property bool appRunning: false
 
@@ -22,6 +24,8 @@ BarWidget {
       return decodeURIComponent(u.substring(7))
     return u
   }
+
+  readonly property string iconPath: Qt.resolvedUrl("assets/grok-bot.png")
 
   readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false
   readonly property bool popoutSwitchClosing: panelLoader.item ? panelLoader.item.popoutSwitchClosing === true : false
@@ -113,14 +117,31 @@ BarWidget {
     id: button
     anchors.fill: parent
     bar: root.bar
-    text: root.showLabel ? root.chipText : "✦"
+    text: root.showLabel ? (root.chipText || "Grok") : ""
+    keepSpace: true
+    labelVisible: root.showLabel && (root.chipText || "Grok").length > 0
     active: root.appRunning
-    // No hover tooltip — right-click menu is the discoverability path
     tooltipText: ""
+    fixedWidth: root.showLabel ? -1 : (root.bar ? root.bar.barSize : Style.bar.sizeHorizontal)
+    horizontalMargin: root.showLabel ? 8.5 : 4
+
+    Image {
+      id: icon
+      anchors.centerIn: parent
+      width: Math.max(14, parent.height - Style.space(10))
+      height: width
+      source: root.iconPath
+      fillMode: Image.PreserveAspectFit
+      smooth: true
+      mipmap: true
+      visible: !root.showLabel || status === Image.Ready
+      opacity: root.appRunning ? 1 : 0.85
+    }
 
     onPressed: function(buttonCode) {
       if (!root.bar) return
       if (buttonCode === Qt.LeftButton) {
+        // Focus + force tiled only — never float, never toggle
         root.runCtl("tile")
       } else if (buttonCode === Qt.RightButton) {
         root.toggle()

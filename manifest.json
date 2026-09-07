@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "mcx424.grok-bot",
   "name": "Grok Bot",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "McX424",
   "description": "Bar chip to open or focus the Grok Bot desktop app \u2014 floating, tiled, or scratchpad. Does not embed the app.",
   "license": "MIT",
@@ -22,8 +22,8 @@
       "windowClass": "grok-bot",
       "floatWidth": 0.7,
       "floatHeight": 0.75,
-      "showLabel": true,
-      "chipText": "Grok Bot"
+      "showLabel": false,
+      "chipText": ""
     },
     "schema": [
       {

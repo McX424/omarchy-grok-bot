@@ -78,7 +78,7 @@ Panel {
         }
 
         MenuRow {
-          label: root.appRunning ? "Focus (tiled)" : "Open"
+          label: root.appRunning ? "Focus tiled" : "Open tiled"
           onActivated: root.act("tile")
         }
         MenuRow {

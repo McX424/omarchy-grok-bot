@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# Launch, focus, float, tile, or scratchpad the Grok Bot window (Hyprland / Omarchy).
+# Launch / focus Grok Bot with explicit float or tile — never toggle.
 set -euo pipefail
 
-MODE="${1:-float}"
+MODE="${1:-tile}"
 CMD="${GROK_BOT_CMD:-grok-bot}"
 CLASS="${GROK_BOT_CLASS:-grok-bot}"
-# Fractions of focused monitor (0–1), or absolute px if > 1
 FW="${2:-0.70}"
 FH="${3:-0.75}"
 
@@ -18,6 +17,13 @@ hypr_dispatch() {
 find_addr() {
   hyprctl clients -j 2>/dev/null | jq -r --arg c "$CLASS" '
     .[] | select((.class // "") | test("^" + $c + "$"; "i")) | .address
+  ' | head -n1
+}
+
+is_floating() {
+  local addr="$1"
+  hyprctl clients -j 2>/dev/null | jq -r --arg a "$addr" '
+    .[] | select(.address == $a) | .floating
   ' | head -n1
 }
 
@@ -36,7 +42,6 @@ wait_addr() {
 }
 
 monitor_size() {
-  # focused monitor width height
   hyprctl monitors -j 2>/dev/null | jq -r '
     (map(select(.focused==true))[0] // .[0]) | "\(.width) \(.height)"
   '
@@ -57,7 +62,6 @@ ensure_running() {
     printf '%s\n' "$addr"
     return 0
   fi
-  # Prefer uwsm-app when available (Omarchy)
   if command -v uwsm-app >/dev/null 2>&1; then
     setsid uwsm-app -- "$CMD" >/dev/null 2>&1 &
   else
@@ -75,25 +79,44 @@ addr_of() {
   printf '%s\n' "$a"
 }
 
+force_tiled() {
+  local addr="$1"
+  # Explicit unset float — never toggle
+  hypr_dispatch "hl.dsp.window.float({ window = \"address:$addr\", action = \"unset\" })" settiled "address:$addr"
+  # Classic settiled is not a toggle; if lua failed and floating stuck, try once more when still floating
+  if [[ $(is_floating "$addr") == "true" ]]; then
+    hyprctl dispatch settiled "address:$addr" >/dev/null 2>&1 || true
+  fi
+}
+
+force_floating() {
+  local addr="$1"
+  hypr_dispatch "hl.dsp.window.float({ window = \"address:$addr\", action = \"set\" })" setfloating "address:$addr"
+  # setfloating classic may toggle — if still tiled, dispatch again once
+  if [[ $(is_floating "$addr") != "true" ]]; then
+    hyprctl dispatch setfloating "address:$addr" >/dev/null 2>&1 || true
+  fi
+  # If somehow still not floating after toggle dance, leave as-is; prefer lua path
+}
+
 case "$MODE" in
+  tile)
+    ADDR=$(addr_of)
+    hypr_dispatch "hl.dsp.focus({ window = \"address:$ADDR\" })" focuswindow "address:$ADDR"
+    force_tiled "$ADDR"
+    ;;
   float)
     ADDR=$(addr_of)
     hypr_dispatch "hl.dsp.focus({ window = \"address:$ADDR\" })" focuswindow "address:$ADDR"
-    hypr_dispatch "hl.dsp.window.float({ window = \"address:$ADDR\", action = \"set\" })" setfloating "address:$ADDR"
+    force_floating "$ADDR"
     read -r MW MH <<<"$(monitor_size)"
     W=$(pixel_size "$FW" "$MW")
     H=$(pixel_size "$FH" "$MH")
     hypr_dispatch "hl.dsp.window.resize({ window = \"address:$ADDR\", x = $W, y = $H })" resizewindowpixel "exact $W $H,address:$ADDR"
     hypr_dispatch "hl.dsp.window.center({ window = \"address:$ADDR\" })" centerwindow
     ;;
-  tile)
-    ADDR=$(addr_of)
-    hypr_dispatch "hl.dsp.focus({ window = \"address:$ADDR\" })" focuswindow "address:$ADDR"
-    hypr_dispatch "hl.dsp.window.float({ window = \"address:$ADDR\", action = \"unset\" })" settiled "address:$ADDR"
-    ;;
   scratch|scratchpad|hide)
     ADDR=$(addr_of)
-    # Omarchy default scratchpad special workspace (SUPER+S)
     hypr_dispatch "hl.dsp.window.move({ workspace = \"special:scratchpad\", follow = false })" movetoworkspacesilent "special:scratchpad,address:$ADDR"
     ;;
   quit|kill|close)
@@ -108,7 +131,7 @@ case "$MODE" in
     if [[ -n ${ADDR:-} && $ADDR != null ]]; then echo yes; else echo no; fi
     ;;
   *)
-    echo "Usage: grok-bot-ctl float|tile|scratch|quit|running [floatWidth] [floatHeight]" >&2
+    echo "Usage: grok-bot-ctl tile|float|scratch|quit|running [floatWidth] [floatHeight]" >&2
     exit 2
     ;;
 esac
