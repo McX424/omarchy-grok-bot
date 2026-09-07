@@ -69,7 +69,7 @@ Panel {
           text: "GROK BOT"
           color: root.mutedForeground
           font.family: root.contentFontFamily
-          font.pixelSize: Style.font.caption
+          font.pixelSize: Style.font.body
           font.bold: true
           font.letterSpacing: 1.1
           leftPadding: Style.space(8)
@@ -92,7 +92,7 @@ Panel {
         MenuRow {
           label: "Quit"
           danger: true
-          enabled: root.appRunning
+          rowEnabled: root.appRunning
           onActivated: root.act("quit")
         }
       }
@@ -103,17 +103,17 @@ Panel {
     id: row
     property string label: ""
     property bool danger: false
-    property bool enabled: true
+    property bool rowEnabled: true
     signal activated()
 
     width: content.width
     height: Style.space(34)
-    opacity: enabled ? 1 : 0.35
+    opacity: rowEnabled ? 1 : 0.35
 
     Rectangle {
       anchors.fill: parent
-      radius: Style.radius.sm
-      color: mouse.containsMouse && row.enabled ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+      radius: 6
+      color: mouse.containsMouse && row.rowEnabled ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
     }
 
     Text {
@@ -130,7 +130,7 @@ Panel {
       id: mouse
       anchors.fill: parent
       hoverEnabled: true
-      enabled: row.enabled
+      enabled: row.rowEnabled
       cursorShape: Qt.PointingHandCursor
       onClicked: row.activated()
     }
