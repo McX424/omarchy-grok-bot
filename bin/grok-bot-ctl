@@ -96,12 +96,19 @@ case "$MODE" in
     # Omarchy default scratchpad special workspace (SUPER+S)
     hypr_dispatch "hl.dsp.window.move({ workspace = \"special:scratchpad\", follow = false })" movetoworkspacesilent "special:scratchpad,address:$ADDR"
     ;;
+  quit|kill|close)
+    ADDR=$(find_addr)
+    if [[ -z ${ADDR:-} || $ADDR == null ]]; then
+      exit 0
+    fi
+    hypr_dispatch "hl.dsp.window.close({ window = \"address:$ADDR\" })" closewindow "address:$ADDR"
+    ;;
   running)
     ADDR=$(find_addr)
     if [[ -n ${ADDR:-} && $ADDR != null ]]; then echo yes; else echo no; fi
     ;;
   *)
-    echo "Usage: grok-bot-ctl float|tile|scratch|running [floatWidth] [floatHeight]" >&2
+    echo "Usage: grok-bot-ctl float|tile|scratch|quit|running [floatWidth] [floatHeight]" >&2
     exit 2
     ;;
 esac

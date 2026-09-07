@@ -23,6 +23,9 @@ BarWidget {
     return u
   }
 
+  readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false
+  readonly property bool popoutSwitchClosing: panelLoader.item ? panelLoader.item.popoutSwitchClosing === true : false
+
   function shellQuote(s) {
     return "'" + String(s).replace(/'/g, "'\\''") + "'"
   }
@@ -37,6 +40,30 @@ BarWidget {
       + " " + root.floatWidth
       + " " + root.floatHeight
     root.bar.run(cmd)
+    Qt.callLater(root.refreshRunning)
+  }
+
+  function open() {
+    if (panelLoader.item) panelLoader.item.open()
+  }
+  function close() {
+    if (panelLoader.item) panelLoader.item.close()
+  }
+  function toggle() {
+    if (panelLoader.item) panelLoader.item.toggle()
+  }
+  function closeForPopoutSwitch() {
+    if (panelLoader.item) panelLoader.item.closeForPopoutSwitch()
+  }
+
+  function injectPanel() {
+    var target = panelLoader.item
+    if (!target) return
+    if ("bar" in target) target.bar = root.bar
+    if ("anchorItem" in target) target.anchorItem = button
+    if ("hostWidget" in target) target.hostWidget = root
+    if ("runCtl" in target) target.runCtl = root.runCtl
+    if ("appRunning" in target) target.appRunning = root.appRunning
   }
 
   function refreshRunning() {
@@ -50,7 +77,11 @@ BarWidget {
     id: runningProc
     running: false
     stdout: StdioCollector {
-      onStreamFinished: root.appRunning = (text.trim() === "yes")
+      onStreamFinished: {
+        root.appRunning = (text.trim() === "yes")
+        if (panelLoader.item && "appRunning" in panelLoader.item)
+          panelLoader.item.appRunning = root.appRunning
+      }
     }
   }
 
@@ -62,6 +93,19 @@ BarWidget {
     onTriggered: root.refreshRunning()
   }
 
+  onBarChanged: injectPanel()
+
+  Loader {
+    id: panelLoader
+    active: true
+    source: Qt.resolvedUrl("Panel.qml")
+    visible: false
+    onLoaded: {
+      root.injectPanel()
+      Qt.callLater(root.injectPanel)
+    }
+  }
+
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
 
@@ -71,21 +115,15 @@ BarWidget {
     bar: root.bar
     text: root.showLabel ? root.chipText : "✦"
     active: root.appRunning
-    tooltipText: root.appRunning
-      ? "Grok Bot (running)\nLeft: float · Right: tile · Middle: scratchpad"
-      : "Grok Bot\nLeft: float · Right: tile · Middle: scratchpad"
+    // No hover tooltip — right-click menu is the discoverability path
+    tooltipText: ""
 
     onPressed: function(buttonCode) {
       if (!root.bar) return
       if (buttonCode === Qt.LeftButton) {
-        root.runCtl("float")
-        Qt.callLater(root.refreshRunning)
-      } else if (buttonCode === Qt.RightButton) {
         root.runCtl("tile")
-        Qt.callLater(root.refreshRunning)
-      } else if (buttonCode === Qt.MiddleButton) {
-        root.runCtl("scratch")
-        Qt.callLater(root.refreshRunning)
+      } else if (buttonCode === Qt.RightButton) {
+        root.toggle()
       }
     }
   }
