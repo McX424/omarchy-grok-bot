@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.5 — 2026-09-08
+- Professional GitHub README + `preview.png` for marketplace listing
+
 ## 1.3.4 — 2026-09-08
 - Marketplace polish: CHANGELOG, README screenshot, tightened listing copy
 - Soft-close remains optional (documented; no auto-edit of hyprland.lua)
