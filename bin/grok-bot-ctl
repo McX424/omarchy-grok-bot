@@ -71,12 +71,13 @@ pixel_size() {
 # Main Electron only: cmdline has the binary and no --type= (helpers are gpu/renderer/etc).
 main_pid() {
   local line pid
+  # Main UI process: ozone flags, no --type=, not local-exec-daemon helper.
   while IFS= read -r line; do
     case "$line" in
-      *--type=*) continue ;;
+      *--type=*|*local-exec-daemon*) continue ;;
     esac
     case "$line" in
-      *"/opt/Grok Bot/grok-bot"*)
+      *"/opt/Grok Bot/grok-bot"*--ozone-platform*)
         pid="${line%% *}"
         if [[ "$pid" =~ ^[0-9]+$ ]]; then
           printf '%s\n' "$pid"

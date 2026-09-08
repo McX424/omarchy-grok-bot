@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.8 — 2026-09-08
+- Tighten main PID match: require `--ozone-platform`, skip `local-exec-daemon`
+
 ## 1.3.7 — 2026-09-08
 - Hide/scratch no-ops when there is no window (never launches into scratchpad)
 - `process_running` / quit target the main Electron process only (exclude `--type=` helpers)
