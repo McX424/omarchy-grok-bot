@@ -81,22 +81,17 @@ addr_of() {
 
 force_tiled() {
   local addr="$1"
-  # Explicit unset float — never toggle
-  hypr_dispatch "hl.dsp.window.float({ window = \"address:$addr\", action = \"unset\" })" settiled "address:$addr"
-  # Classic settiled is not a toggle; if lua failed and floating stuck, try once more when still floating
+  # Omarchy hl.dsp.window.float set/unset toggles if already in that state — only call when needed.
   if [[ $(is_floating "$addr") == "true" ]]; then
-    hyprctl dispatch settiled "address:$addr" >/dev/null 2>&1 || true
+    hyprctl dispatch "hl.dsp.window.float({ window = \"address:$addr\", action = \"unset\" })" >/dev/null 2>&1 || true
   fi
 }
 
 force_floating() {
   local addr="$1"
-  hypr_dispatch "hl.dsp.window.float({ window = \"address:$addr\", action = \"set\" })" setfloating "address:$addr"
-  # setfloating classic may toggle — if still tiled, dispatch again once
   if [[ $(is_floating "$addr") != "true" ]]; then
-    hyprctl dispatch setfloating "address:$addr" >/dev/null 2>&1 || true
+    hyprctl dispatch "hl.dsp.window.float({ window = \"address:$addr\", action = \"set\" })" >/dev/null 2>&1 || true
   fi
-  # If somehow still not floating after toggle dance, leave as-is; prefer lua path
 }
 
 case "$MODE" in
