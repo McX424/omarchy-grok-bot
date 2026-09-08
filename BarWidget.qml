@@ -78,6 +78,22 @@ BarWidget {
     runningProc.running = true
   }
 
+  // Ensure SUPER+W soft-close snippet once (idempotent; reloads Hyprland only if newly added)
+  function ensureHyprSoftClose() {
+    var hook = root.ctlPath.replace(/grok-bot-ctl$/, "grok-bot-hypr-hook")
+    hyprHookProc.command = ["bash", "-lc", shellQuote(hook) + " install"]
+    hyprHookProc.running = false
+    hyprHookProc.running = true
+  }
+
+  Component.onCompleted: Qt.callLater(root.ensureHyprSoftClose)
+  onBarChanged: Qt.callLater(root.ensureHyprSoftClose)
+
+  Process {
+    id: hyprHookProc
+    running: false
+  }
+
   Process {
     id: runningProc
     running: false

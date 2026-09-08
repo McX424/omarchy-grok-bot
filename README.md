@@ -21,6 +21,7 @@ This plugin talks to the real app window over Hyprland. It does **not** embed El
 - **Right-click is literal** — **Tiled** · **Floating** · **Hide** · **Close Grok Bot** (no float↔tile toggles)
 - **Omarchy-sized float** — default floating window is **875×600**, matching stock Omarchy floating windows
 - **Explicit quit only** — casual dismiss keeps Grok Bot running until you choose **Close Grok Bot**
+- **SUPER+W soft-close** — installed with the plugin; hides Grok Bot instead of quitting
 
 ## Requirements
 
@@ -62,17 +63,21 @@ Hide (menu or left-click) is intentional soft-dismiss. The Electron process stay
 
 **Caveat:** the app’s own titlebar **X** still quits Grok Bot on Linux (`window-all-closed` → `app.quit`). Hyprland cannot rewrite that into a hide. Prefer **Hide**, left-click, or the optional SUPER+W soft-close below.
 
-### Optional: SUPER+W soft-close
+### SUPER+W soft-close (default)
 
-To make **SUPER+W** hide Grok Bot to the scratchpad instead of quitting when it is focused, add this to `~/.config/hypr/hyprland.lua` (after Omarchy defaults), then `hyprctl reload`:
+When the plugin is enabled, **SUPER+W** soft-hides a focused Grok Bot window to the scratchpad (process stays; chip stays lit). Other windows still close normally.
 
-```lua
-do local path = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config")
-  .. "/omarchy/plugins/mcx424.grok-bot/hypr/mcx424-grok-bot.lua"
-  local file = io.open(path, "r"); if file then file:close(); dofile(path) end end
+The chip ensures an idempotent snippet in `~/.config/hypr/hyprland.lua` once (marker `BEGIN mcx424.grok-bot soft-close`) and runs `hyprctl reload` **only** if the snippet was newly added — not on every update or QML save.
+
+**Caveat:** the app titlebar **X** still quits Electron on Linux. Prefer SUPER+W, left-click, or **Hide**.
+
+On remove, run:
+
+```bash
+~/.config/omarchy/plugins/mcx424.grok-bot/bin/grok-bot-hypr-hook uninstall
 ```
 
-This is **opt-in**. The plugin does not edit your Hyprland config on install.
+(`omarchy plugin remove` does not run Hyprland hooks automatically.)
 
 ## Configure
 
@@ -95,10 +100,11 @@ omarchy plugin update mcx424.grok-bot
 ## Remove
 
 ```bash
+~/.config/omarchy/plugins/mcx424.grok-bot/bin/grok-bot-hypr-hook uninstall
 omarchy plugin remove mcx424.grok-bot
 ```
 
-That removes `~/.config/omarchy/plugins/mcx424.grok-bot/` and drops the widget from your bar layout. If you added the optional SUPER+W snippet, delete that `dofile` block from `hyprland.lua` yourself.
+That removes the SUPER+W snippet (and reloads Hyprland once), then deletes the plugin folder and drops the widget from your bar layout.
 
 ## Changelog
 

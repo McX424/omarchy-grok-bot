@@ -1,4 +1,5 @@
 -- mcx424.grok-bot: SUPER+W soft-closes Grok Bot to scratchpad (process stays alive).
+-- Installed by bin/grok-bot-hypr-hook when the plugin is enabled.
 -- Titlebar / app X still quits Electron — Hyprland cannot intercept that.
 do
   local home = os.getenv("HOME") or ""

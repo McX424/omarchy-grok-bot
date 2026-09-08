@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.9 — 2026-09-08
+- Enforce SUPER+W soft-close when the plugin is enabled (idempotent hyprland.lua snippet; reload only if newly added)
+- `bin/grok-bot-hypr-hook` install|uninstall|status; README remove steps include uninstall
+
 ## 1.3.8 — 2026-09-08
 - Tighten main PID match: require `--ozone-platform`, skip `local-exec-daemon`
 
