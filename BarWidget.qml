@@ -12,7 +12,7 @@ BarWidget {
   readonly property string windowClass: String(setting("windowClass", "grok-bot"))
   readonly property real floatWidth: Number(setting("floatWidth", 875)) || 875
   readonly property real floatHeight: Number(setting("floatHeight", 600)) || 600
-  // Icon-only by default (Carl UX)
+  // Icon-only by default
   readonly property bool showLabel: setting("showLabel", false) === true
   readonly property string chipText: String(setting("chipText", ""))
 
