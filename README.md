@@ -2,6 +2,9 @@
 
 Bar chip for the Grok Bot **desktop app** on Omarchy / Hyprland. Icon-only by default. Left-click toggles hide/show; right-click picks tiled, floating, or hide. Does **not** embed Electron.
 
+![Bar chip and menu](docs/menu.png)
+
+
 ## Install
 
 ```bash
@@ -45,6 +48,8 @@ Menu actions set mode explicitly (no toggles). Floating uses **875×600** by def
 | `floatWidth` / `floatHeight` | `875` / `600` | Float size (px, or fraction ≤1) |
 | `showLabel` | `false` | Icon only unless true |
 | `chipText` | `""` | Optional label when `showLabel` |
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ## License
 
