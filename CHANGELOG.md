@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.6 — 2026-09-08
+- Scrub personal comments for marketplace release
+
 ## 1.3.5 — 2026-09-08
 - Professional GitHub README + `preview.png` for marketplace listing
 
