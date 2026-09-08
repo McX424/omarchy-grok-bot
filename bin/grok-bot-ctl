@@ -5,8 +5,8 @@ set -euo pipefail
 MODE="${1:-tile}"
 CMD="${GROK_BOT_CMD:-grok-bot}"
 CLASS="${GROK_BOT_CLASS:-grok-bot}"
-FW="${2:-0.70}"
-FH="${3:-0.75}"
+FW="${2:-875}"
+FH="${3:-600}"
 
 hypr_dispatch() {
   local lua="$1"

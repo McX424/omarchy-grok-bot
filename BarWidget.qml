@@ -10,8 +10,8 @@ BarWidget {
 
   readonly property string launchCmd: String(setting("command", "grok-bot"))
   readonly property string windowClass: String(setting("windowClass", "grok-bot"))
-  readonly property real floatWidth: Number(setting("floatWidth", 0.70)) || 0.70
-  readonly property real floatHeight: Number(setting("floatHeight", 0.75)) || 0.75
+  readonly property real floatWidth: Number(setting("floatWidth", 875)) || 875
+  readonly property real floatHeight: Number(setting("floatHeight", 600)) || 600
   // Icon-only by default (Carl UX)
   readonly property bool showLabel: setting("showLabel", false) === true
   readonly property string chipText: String(setting("chipText", ""))
@@ -118,6 +118,9 @@ BarWidget {
     anchors.fill: parent
     bar: root.bar
     text: root.showLabel ? (root.chipText || "Grok") : ""
+    // Image child is the visual when showLabel is false — without this,
+    // WidgetButton treats empty text as no content and drops opacity to 0.
+    hasVisualContent: true
     keepSpace: true
     labelVisible: root.showLabel && (root.chipText || "Grok").length > 0
     active: root.appRunning
@@ -128,13 +131,14 @@ BarWidget {
     Image {
       id: icon
       anchors.centerIn: parent
-      width: Math.max(14, parent.height - Style.space(10))
+      // ~barSize-8 so the glyph fills the chip without clipping
+      width: Math.max(14, (root.bar ? root.bar.barSize : Style.bar.sizeHorizontal) - 8)
       height: width
       source: root.iconPath
       fillMode: Image.PreserveAspectFit
       smooth: true
       mipmap: true
-      visible: !root.showLabel || status === Image.Ready
+      visible: true
       opacity: root.appRunning ? 1 : 0.85
     }
 
