@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "mcx424.grok-bot",
   "name": "Grok Bot",
-  "version": "1.3.10",
+  "version": "1.3.11",
   "author": "McX424",
   "description": "Icon bar chip for the Grok Bot desktop app \u2014 toggle hide/show, tiled or floating. Does not embed the app.",
   "license": "MIT",

@@ -87,7 +87,6 @@ BarWidget {
   }
 
   Component.onCompleted: Qt.callLater(root.ensureHyprSoftClose)
-  onBarChanged: Qt.callLater(root.ensureHyprSoftClose)
 
   Process {
     id: hyprHookProc
@@ -114,7 +113,11 @@ BarWidget {
     onTriggered: root.refreshRunning()
   }
 
-  onBarChanged: injectPanel()
+  onBarChanged: {
+    Qt.callLater(root.ensureHyprSoftClose)
+    injectPanel()
+  }
+
 
   Loader {
     id: panelLoader

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.11 — 2026-09-08
+- Fix chip load: merge duplicate `onBarChanged` handlers (QML "Property value set multiple times")
+
 ## 1.3.10 — 2026-09-08
 - Fix hypr-hook marker grep (`--` so markers are not flags); dedupe duplicate soft-close blocks
 
