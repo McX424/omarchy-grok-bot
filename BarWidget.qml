@@ -17,6 +17,7 @@ BarWidget {
   readonly property string chipText: String(setting("chipText", ""))
 
   property bool appRunning: false
+  property double lastLeftClickMs: 0
 
   readonly property string ctlPath: {
     var u = Qt.resolvedUrl("bin/grok-bot-ctl").toString()
@@ -145,7 +146,11 @@ BarWidget {
     onPressed: function(buttonCode) {
       if (!root.bar) return
       if (buttonCode === Qt.LeftButton) {
-        // Toggle visibility: hide if visible; show tiled if scratched/stopped
+        // Debounce rapid hide↔show (unmap/remap double-fire)
+        var now = Date.now()
+        if (now - root.lastLeftClickMs < 200)
+          return
+        root.lastLeftClickMs = now
         root.runCtl("left")
       } else if (buttonCode === Qt.RightButton) {
         root.toggle()

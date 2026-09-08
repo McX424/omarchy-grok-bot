@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.7 — 2026-09-08
+- Hide/scratch no-ops when there is no window (never launches into scratchpad)
+- `process_running` / quit target the main Electron process only (exclude `--type=` helpers)
+- Debounce left-click (~200ms) to avoid hide↔show double-fire
+
 ## 1.3.6 — 2026-09-08
 - Scrub personal comments for marketplace release
 

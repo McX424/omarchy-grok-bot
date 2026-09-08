@@ -68,9 +68,34 @@ pixel_size() {
   }'
 }
 
+# Main Electron only: cmdline has the binary and no --type= (helpers are gpu/renderer/etc).
+main_pid() {
+  local line pid
+  while IFS= read -r line; do
+    case "$line" in
+      *--type=*) continue ;;
+    esac
+    case "$line" in
+      *"/opt/Grok Bot/grok-bot"*)
+        pid="${line%% *}"
+        if [[ "$pid" =~ ^[0-9]+$ ]]; then
+          printf '%s\n' "$pid"
+          return 0
+        fi
+        ;;
+    esac
+  done < <(pgrep -af '/opt/Grok Bot/grok-bot' 2>/dev/null || true)
+  return 1
+}
+
 process_running() {
-  # Main Electron process (not helpers with --type=)
-  pgrep -f '/opt/Grok Bot/grok-bot( |$)' >/dev/null 2>&1 || pgrep -x grok-bot >/dev/null 2>&1
+  main_pid >/dev/null
+}
+
+kill_main() {
+  local pid
+  pid=$(main_pid) || return 0
+  kill "$pid" >/dev/null 2>&1 || true
 }
 
 ensure_running() {
@@ -175,7 +200,14 @@ case "$MODE" in
     hypr_dispatch "hl.dsp.window.center({ window = \"address:$ADDR\" })" centerwindow
     ;;
   scratch|scratchpad|hide)
-    ADDR=$(addr_of)
+    # Never launch on hide — no window / already scratched → no-op
+    ADDR=$(find_addr)
+    if [[ -z ${ADDR:-} || $ADDR == null ]]; then
+      exit 0
+    fi
+    if on_scratchpad "$ADDR"; then
+      exit 0
+    fi
     hide_to_scratchpad "$ADDR"
     ;;
   quit|kill|close)
@@ -188,10 +220,17 @@ case "$MODE" in
         [[ -z $(find_addr) ]] && break
       done
     fi
-    # If Electron ignored / stuck, force-kill main process
+    # If Electron ignored / stuck, TERM the main process only (not --type= helpers)
     if process_running || [[ -n $(find_addr) ]]; then
-      pkill -f '/opt/Grok Bot/grok-bot( |$)' >/dev/null 2>&1 || true
-      # also try class-based kill
+      kill_main
+      for _ in 1 2 3 4 5 6 7 8; do
+        sleep 0.15
+        process_running || break
+      done
+      if process_running; then
+        pid=$(main_pid) || true
+        [[ -n ${pid:-} ]] && kill -9 "$pid" >/dev/null 2>&1 || true
+      fi
       ADDR=$(find_addr)
       if [[ -n ${ADDR:-} && $ADDR != null ]]; then
         hypr_dispatch "hl.dsp.window.kill({ window = \"address:$ADDR\" })" killwindow "address:$ADDR"
