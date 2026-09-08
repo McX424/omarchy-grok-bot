@@ -3,7 +3,7 @@
 # scratch = hide (special:scratchpad), keep process. quit = actually close/kill.
 set -euo pipefail
 
-MODE="${1:-tile}"
+MODE="${1:-left}"
 CMD="${GROK_BOT_CMD:-grok-bot}"
 CLASS="${GROK_BOT_CLASS:-grok-bot}"
 FW="${2:-875}"
@@ -126,6 +126,27 @@ unscratch_to_active() {
 }
 
 case "$MODE" in
+  left|toggle|toggle-vis)
+    # Left-click: hide if visible on a normal workspace; else show tiled (launch if needed).
+    ADDR=$(find_addr)
+    if [[ -n ${ADDR:-} && $ADDR != null ]]; then
+      if on_scratchpad "$ADDR"; then
+        unscratch_to_active "$ADDR"
+        hypr_dispatch "hl.dsp.focus({ window = \"address:$ADDR\" })" focuswindow "address:$ADDR"
+        force_tiled "$ADDR"
+      else
+        # Visible (tiled or floating) → soft-hide; do not flip float/tile
+        hypr_dispatch "hl.dsp.window.move({ workspace = \"special:scratchpad\", follow = false })" \
+          movetoworkspacesilent "special:scratchpad,address:$ADDR"
+      fi
+    else
+      # No window: launch tiled if process dead, or tile path will create window
+      ADDR=$(addr_of)
+      unscratch_to_active "$ADDR"
+      hypr_dispatch "hl.dsp.focus({ window = \"address:$ADDR\" })" focuswindow "address:$ADDR"
+      force_tiled "$ADDR"
+    fi
+    ;;
   tile)
     ADDR=$(addr_of)
     unscratch_to_active "$ADDR"
@@ -180,7 +201,7 @@ case "$MODE" in
     fi
     ;;
   *)
-    echo "Usage: grok-bot-ctl tile|float|scratch|quit|running [floatWidth] [floatHeight]" >&2
+    echo "Usage: grok-bot-ctl left|tile|float|scratch|quit|running [floatWidth] [floatHeight]" >&2
     exit 2
     ;;
 esac

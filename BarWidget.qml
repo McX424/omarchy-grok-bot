@@ -145,8 +145,8 @@ BarWidget {
     onPressed: function(buttonCode) {
       if (!root.bar) return
       if (buttonCode === Qt.LeftButton) {
-        // Focus + force tiled only — never float, never toggle
-        root.runCtl("tile")
+        // Toggle visibility: hide if visible; show tiled if scratched/stopped
+        root.runCtl("left")
       } else if (buttonCode === Qt.RightButton) {
         root.toggle()
       }

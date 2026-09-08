@@ -24,7 +24,7 @@ Then reload Hyprland / restart the session config.
 
 | Click | Action |
 |-------|--------|
-| Left | Focus **tiled** only (launch if needed; unscratch if hidden). Never toggles float. |
+| Left | **Toggle visibility**: hide to scratchpad if visible; show **tiled** + focus if hidden/not running. Never flips float↔tile. |
 | Right | Menu: Open/Focus tiled · Floating · Move to scratchpad · Close Grok Bot |
 
 Each menu action **sets** the mode explicitly (no toggle). Floating recenters/resizes at **875×600** by default.
