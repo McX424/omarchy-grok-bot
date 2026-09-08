@@ -78,7 +78,7 @@ Panel {
         }
 
         MenuRow {
-          label: root.appRunning ? "Focus tiled" : "Open tiled"
+          label: "Tiled"
           onActivated: root.act("tile")
         }
         MenuRow {
@@ -86,7 +86,7 @@ Panel {
           onActivated: root.act("float")
         }
         MenuRow {
-          label: "Move to scratchpad"
+          label: "Hide"
           onActivated: root.act("scratch")
         }
         MenuRow {
