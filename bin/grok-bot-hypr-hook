@@ -24,13 +24,32 @@ SNIP
 }
 
 has_snippet() {
-  [[ -f $HYPR_LUA ]] && grep -Fq "$MARKER_BEGIN" "$HYPR_LUA"
+  [[ -f $HYPR_LUA ]] && grep -Fq -- "$MARKER_BEGIN" "$HYPR_LUA"
 }
+
+# Collapse duplicate marked blocks to a single trailing snippet.
+dedupe_snippets() {
+  [[ -f $HYPR_LUA ]] || return 0
+  local count
+  count=$(grep -Fc -- "$MARKER_BEGIN" "$HYPR_LUA" || true)
+  (( count > 1 )) || return 0
+  local tmp
+  tmp=$(mktemp)
+  awk -v b="$MARKER_BEGIN" -v e="$MARKER_END" '
+    $0 == b { skip=1; next }
+    $0 == e { skip=0; next }
+    skip { next }
+    { print }
+  ' "$HYPR_LUA" >"$tmp"
+  mv "$tmp" "$HYPR_LUA"
+  snippet >>"$HYPR_LUA"
+}
+
 
 # Migrate older unmarked dofile (from earlier manual install) into marked block.
 migrate_legacy() {
   [[ -f $HYPR_LUA ]] || return 0
-  if grep -Fq "$MARKER_BEGIN" "$HYPR_LUA"; then
+  if grep -Fq -- "$MARKER_BEGIN" "$HYPR_LUA"; then
     return 0
   fi
   if grep -Fq 'mcx424.grok-bot/hypr/mcx424-grok-bot.lua' "$HYPR_LUA"; then
@@ -62,6 +81,7 @@ case "$ACTION" in
     mkdir -p "$(dirname "$HYPR_LUA")"
     touch "$HYPR_LUA"
     migrate_legacy
+    dedupe_snippets
     if has_snippet; then
       echo "already"
       exit 0
