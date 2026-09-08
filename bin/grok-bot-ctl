@@ -112,6 +112,17 @@ force_floating() {
   fi
 }
 
+
+hide_to_scratchpad() {
+  local addr="$1"
+  # Always address the target — Lua window.move without window moves the *focused* window.
+  hypr_dispatch "hl.dsp.window.move({ window = \"address:$addr\", workspace = \"special:scratchpad\", follow = false })" \
+    movetoworkspacesilent "special:scratchpad,address:$addr"
+  if ! on_scratchpad "$addr"; then
+    hyprctl dispatch movetoworkspacesilent "special:scratchpad,address:$addr" >/dev/null 2>&1 || true
+  fi
+}
+
 unscratch_to_active() {
   local addr="$1"
   local ws
@@ -136,8 +147,7 @@ case "$MODE" in
         force_tiled "$ADDR"
       else
         # Visible (tiled or floating) → soft-hide; do not flip float/tile
-        hypr_dispatch "hl.dsp.window.move({ workspace = \"special:scratchpad\", follow = false })" \
-          movetoworkspacesilent "special:scratchpad,address:$ADDR"
+        hide_to_scratchpad "$ADDR"
       fi
     else
       # No window: launch tiled if process dead, or tile path will create window
@@ -166,8 +176,7 @@ case "$MODE" in
     ;;
   scratch|scratchpad|hide)
     ADDR=$(addr_of)
-    hypr_dispatch "hl.dsp.window.move({ workspace = \"special:scratchpad\", follow = false })" \
-      movetoworkspacesilent "special:scratchpad,address:$ADDR"
+    hide_to_scratchpad "$ADDR"
     ;;
   quit|kill|close)
     ADDR=$(find_addr)
