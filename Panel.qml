@@ -82,7 +82,7 @@ Panel {
           onActivated: root.act("tile")
         }
         MenuRow {
-          label: "Open floating"
+          label: "Floating"
           onActivated: root.act("float")
         }
         MenuRow {
@@ -90,7 +90,7 @@ Panel {
           onActivated: root.act("scratch")
         }
         MenuRow {
-          label: "Quit"
+          label: "Close Grok Bot"
           danger: true
           rowEnabled: root.appRunning
           onActivated: root.act("quit")

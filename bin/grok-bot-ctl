@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Launch / focus Grok Bot with explicit float or tile — never toggle.
+# scratch = hide (special:scratchpad), keep process. quit = actually close/kill.
 set -euo pipefail
 
 MODE="${1:-tile}"
@@ -20,11 +21,23 @@ find_addr() {
   ' | head -n1
 }
 
+client_json() {
+  local addr="$1"
+  hyprctl clients -j 2>/dev/null | jq -c --arg a "$addr" '.[] | select(.address == $a)' | head -n1
+}
+
 is_floating() {
   local addr="$1"
   hyprctl clients -j 2>/dev/null | jq -r --arg a "$addr" '
     .[] | select(.address == $a) | .floating
   ' | head -n1
+}
+
+on_scratchpad() {
+  local addr="$1"
+  hyprctl clients -j 2>/dev/null | jq -r --arg a "$addr" '
+    .[] | select(.address == $a) | (.workspace.name // "")
+  ' | head -n1 | grep -q '^special:'
 }
 
 wait_addr() {
@@ -53,6 +66,11 @@ pixel_size() {
     if (v+0 > 1) { printf "%d", int(v+0.5); exit }
     printf "%d", int(d * v + 0.5)
   }'
+}
+
+process_running() {
+  # Main Electron process (not helpers with --type=)
+  pgrep -f '/opt/Grok Bot/grok-bot( |$)' >/dev/null 2>&1 || pgrep -x grok-bot >/dev/null 2>&1
 }
 
 ensure_running() {
@@ -94,14 +112,29 @@ force_floating() {
   fi
 }
 
+unscratch_to_active() {
+  local addr="$1"
+  local ws
+  ws=$(hyprctl activeworkspace -j 2>/dev/null | jq -r '.id // empty')
+  if [[ -z ${ws:-} ]]; then
+    return 0
+  fi
+  if on_scratchpad "$addr"; then
+    hypr_dispatch "hl.dsp.window.move({ window = \"address:$addr\", workspace = \"$ws\", follow = true })" \
+      movetoworkspace "$ws,address:$addr"
+  fi
+}
+
 case "$MODE" in
   tile)
     ADDR=$(addr_of)
+    unscratch_to_active "$ADDR"
     hypr_dispatch "hl.dsp.focus({ window = \"address:$ADDR\" })" focuswindow "address:$ADDR"
     force_tiled "$ADDR"
     ;;
   float)
     ADDR=$(addr_of)
+    unscratch_to_active "$ADDR"
     hypr_dispatch "hl.dsp.focus({ window = \"address:$ADDR\" })" focuswindow "address:$ADDR"
     force_floating "$ADDR"
     read -r MW MH <<<"$(monitor_size)"
@@ -112,18 +145,39 @@ case "$MODE" in
     ;;
   scratch|scratchpad|hide)
     ADDR=$(addr_of)
-    hypr_dispatch "hl.dsp.window.move({ workspace = \"special:scratchpad\", follow = false })" movetoworkspacesilent "special:scratchpad,address:$ADDR"
+    hypr_dispatch "hl.dsp.window.move({ workspace = \"special:scratchpad\", follow = false })" \
+      movetoworkspacesilent "special:scratchpad,address:$ADDR"
     ;;
   quit|kill|close)
     ADDR=$(find_addr)
-    if [[ -z ${ADDR:-} || $ADDR == null ]]; then
-      exit 0
+    if [[ -n ${ADDR:-} && $ADDR != null ]]; then
+      # Graceful close first (matches "Close Grok Bot")
+      hypr_dispatch "hl.dsp.window.close({ window = \"address:$ADDR\" })" closewindow "address:$ADDR"
+      for _ in 1 2 3 4 5 6 7 8 9 10; do
+        sleep 0.15
+        [[ -z $(find_addr) ]] && break
+      done
     fi
-    hypr_dispatch "hl.dsp.window.close({ window = \"address:$ADDR\" })" closewindow "address:$ADDR"
+    # If Electron ignored / stuck, force-kill main process
+    if process_running || [[ -n $(find_addr) ]]; then
+      pkill -f '/opt/Grok Bot/grok-bot( |$)' >/dev/null 2>&1 || true
+      # also try class-based kill
+      ADDR=$(find_addr)
+      if [[ -n ${ADDR:-} && $ADDR != null ]]; then
+        hypr_dispatch "hl.dsp.window.kill({ window = \"address:$ADDR\" })" killwindow "address:$ADDR"
+      fi
+    fi
     ;;
   running)
+    # Visible or scratchpad window, or main process still up
     ADDR=$(find_addr)
-    if [[ -n ${ADDR:-} && $ADDR != null ]]; then echo yes; else echo no; fi
+    if [[ -n ${ADDR:-} && $ADDR != null ]]; then
+      echo yes
+    elif process_running; then
+      echo yes
+    else
+      echo no
+    fi
     ;;
   *)
     echo "Usage: grok-bot-ctl tile|float|scratch|quit|running [floatWidth] [floatHeight]" >&2

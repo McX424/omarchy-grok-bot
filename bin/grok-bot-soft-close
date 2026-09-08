@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Soft-close for Hyprland: Grok Bot → scratchpad (keep process). Others → normal close.
+set -euo pipefail
+CLASS="$(hyprctl activewindow -j 2>/dev/null | jq -r '.class // empty')"
+SELF="$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null || echo "$0")"
+CTL="$(dirname "$SELF")/grok-bot-ctl"
+if [[ "$CLASS" == "grok-bot" ]]; then
+  exec "$CTL" scratch
+fi
+hyprctl dispatch 'hl.dsp.window.close()' >/dev/null 2>&1 || hyprctl dispatch killactive >/dev/null 2>&1 || true
