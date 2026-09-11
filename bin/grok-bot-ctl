@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Launch / focus Grok Bot with explicit float or tile — never toggle.
-# scratch = hide (special:scratchpad), keep process. quit = actually close/kill.
+# scratch = hide to dedicated special:grokbot (NOT shared special:scratchpad), keep process.
+# quit = actually close/kill.
 set -euo pipefail
 
 MODE="${1:-left}"
@@ -33,11 +34,17 @@ is_floating() {
   ' | head -n1
 }
 
+# Dedicated hide workspace — never the shared special:scratchpad (other plugins toggle that).
+GROK_HIDE_WS="special:grokbot"
+
 on_scratchpad() {
   local addr="$1"
-  hyprctl clients -j 2>/dev/null | jq -r --arg a "$addr" '
+  local ws
+  ws=$(hyprctl clients -j 2>/dev/null | jq -r --arg a "$addr" '
     .[] | select(.address == $a) | (.workspace.name // "")
-  ' | head -n1 | grep -q '^special:'
+  ' | head -n1)
+  # Current hide target, or legacy shared scratchpad (migrate on next show/hide)
+  [[ "$ws" == "$GROK_HIDE_WS" || "$ws" == "special:scratchpad" ]]
 }
 
 wait_addr() {
@@ -142,10 +149,17 @@ force_floating() {
 hide_to_scratchpad() {
   local addr="$1"
   # Always address the target — Lua window.move without window moves the *focused* window.
-  hypr_dispatch "hl.dsp.window.move({ window = \"address:$addr\", workspace = \"special:scratchpad\", follow = false })" \
-    movetoworkspacesilent "special:scratchpad,address:$addr"
-  if ! on_scratchpad "$addr"; then
-    hyprctl dispatch movetoworkspacesilent "special:scratchpad,address:$addr" >/dev/null 2>&1 || true
+  # Use dedicated special:grokbot so other bar plugins' scratchpad toggles do not reveal Grok.
+  # Never togglespecialworkspace (would flip the whole special workspace visibility).
+  hypr_dispatch "hl.dsp.window.move({ window = \"address:$addr\", workspace = \"$GROK_HIDE_WS\", follow = false })" \
+    movetoworkspacesilent "$GROK_HIDE_WS,address:$addr"
+  # Confirm we landed on grokbot specifically (legacy scratchpad counts as "hidden" but we want grokbot)
+  local ws
+  ws=$(hyprctl clients -j 2>/dev/null | jq -r --arg a "$addr" '
+    .[] | select(.address == $a) | (.workspace.name // "")
+  ' | head -n1)
+  if [[ "$ws" != "$GROK_HIDE_WS" ]]; then
+    hyprctl dispatch movetoworkspacesilent "$GROK_HIDE_WS,address:$addr" >/dev/null 2>&1 || true
   fi
 }
 
@@ -239,7 +253,7 @@ case "$MODE" in
     fi
     ;;
   running)
-    # Visible or scratchpad window, or main process still up
+    # Visible or hidden (special:grokbot) window, or main process still up
     ADDR=$(find_addr)
     if [[ -n ${ADDR:-} && $ADDR != null ]]; then
       echo yes

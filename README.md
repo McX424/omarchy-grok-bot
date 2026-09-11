@@ -17,7 +17,7 @@ This plugin talks to the real app window over Hyprland. It does **not** embed El
 ## Why this plugin
 
 - **One chip, no clutter** — icon-only by default; optional label if you want it
-- **Left-click toggles visibility** — hide to the scratchpad, show tiled again; process stays alive and the chip stays lit
+- **Left-click toggles visibility** — hide to a private special workspace, show tiled again; process stays alive and the chip stays lit
 - **Right-click is literal** — **Tiled** · **Floating** · **Hide** · **Close Grok Bot** (no float↔tile toggles)
 - **Omarchy-sized float** — default floating window is **875×600**, matching stock Omarchy floating windows
 - **Explicit quit only** — casual dismiss keeps Grok Bot running until you choose **Close Grok Bot**
@@ -49,10 +49,10 @@ The chip should appear in the bar. Left-click launches or restores Grok Bot tile
 
 | Input | Action |
 | --- | --- |
-| **Left-click** | Toggle visibility: hide if the window is on a normal workspace; show **tiled** + focus if it is on the scratchpad or not running |
+| **Left-click** | Toggle visibility: hide if the window is on a normal workspace; show **tiled** + focus if it is hidden (`special:grokbot`) or not running |
 | **Right-click → Tiled** | Focus and force tiled (launch if needed) |
 | **Right-click → Floating** | Focus, force float, resize to settings, center |
-| **Right-click → Hide** | Move to `special:scratchpad` — process keeps running, chip stays active |
+| **Right-click → Hide** | Move to dedicated `special:grokbot` — process keeps running, chip stays active (not the shared scratchpad) |
 | **Right-click → Close Grok Bot** | Quit the app |
 
 Menu actions **set** a mode; they never toggle float↔tile.
@@ -65,7 +65,7 @@ Hide (menu or left-click) is intentional soft-dismiss. The Electron process stay
 
 ### SUPER+W soft-close (default)
 
-When the plugin is enabled, **SUPER+W** soft-hides a focused Grok Bot window to the scratchpad (process stays; chip stays lit). Other windows still close normally.
+When the plugin is enabled, **SUPER+W** soft-hides a focused Grok Bot window to `special:grokbot` (process stays; chip stays lit). Other windows still close normally.
 
 The chip ensures an idempotent snippet in `~/.config/hypr/hyprland.lua` once (marker `BEGIN mcx424.grok-bot soft-close`) and runs `hyprctl reload` **only** if the snippet was newly added — not on every update or QML save.
 

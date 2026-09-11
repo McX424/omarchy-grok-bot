@@ -15,7 +15,7 @@ snippet() {
   cat <<SNIP
 
 $MARKER_BEGIN
--- SUPER+W soft-closes Grok Bot to scratchpad (process stays alive).
+-- SUPER+W soft-closes Grok Bot to special:grokbot (process stays alive).
 do local path = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config")
   .. "/$PLUGIN_LUA_REL"
   local file = io.open(path, "r"); if file then file:close(); dofile(path) end end

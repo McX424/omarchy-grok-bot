@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.12 — 2026-09-11
+- Hide to dedicated `special:grokbot` instead of shared `special:scratchpad` (other bar plugins no longer unhide Grok when they toggle the shared scratchpad)
+- Still address-by-window; never `togglespecialworkspace`
+- Legacy windows already on `special:scratchpad` still count as hidden until the next hide (migrates to grokbot)
+
 ## 1.3.11 — 2026-09-08
 - Fix chip load: merge duplicate `onBarChanged` handlers (QML "Property value set multiple times")
 

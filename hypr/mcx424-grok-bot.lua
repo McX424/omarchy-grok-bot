@@ -1,4 +1,4 @@
--- mcx424.grok-bot: SUPER+W soft-closes Grok Bot to scratchpad (process stays alive).
+-- mcx424.grok-bot: SUPER+W soft-closes Grok Bot to special:grokbot (process stays alive).
 -- Installed by bin/grok-bot-hypr-hook when the plugin is enabled.
 -- Titlebar / app X still quits Electron — Hyprland cannot intercept that.
 do
@@ -10,5 +10,5 @@ do
   end
   f:close()
   hl.unbind("SUPER + W")
-  o.bind("SUPER + W", "Close window (Grok Bot → scratchpad)", ctl)
+  o.bind("SUPER + W", "Close window (Grok Bot → special:grokbot)", ctl)
 end
