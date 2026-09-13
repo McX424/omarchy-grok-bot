@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import qs.Commons
@@ -26,7 +27,8 @@ BarWidget {
     return u
   }
 
-  readonly property string iconPath: Qt.resolvedUrl("assets/grok-bot.png")
+  // White symbolic SVG — MultiEffect recolors to bar theme (same pattern as other Omarchy chips)
+  readonly property url iconSource: Qt.resolvedUrl("assets/grok-bot.svg")
 
   readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false
   readonly property bool popoutSwitchClosing: panelLoader.item ? panelLoader.item.popoutSwitchClosing === true : false
@@ -118,7 +120,6 @@ BarWidget {
     injectPanel()
   }
 
-
   Loader {
     id: panelLoader
     active: true
@@ -138,28 +139,48 @@ BarWidget {
     anchors.fill: parent
     bar: root.bar
     text: root.showLabel ? (root.chipText || "Grok") : ""
-    // Image child is the visual when showLabel is false — without this,
+    // Image/MultiEffect is the visual when showLabel is false — without this,
     // WidgetButton treats empty text as no content and drops opacity to 0.
     hasVisualContent: true
     keepSpace: true
     labelVisible: root.showLabel && (root.chipText || "Grok").length > 0
     active: root.appRunning
-    tooltipText: ""
+    tooltipText: root.appRunning ? "Grok Bot · running" : "Grok Bot · not running"
     fixedWidth: root.showLabel ? -1 : (root.bar ? root.bar.barSize : Style.bar.sizeHorizontal)
     horizontalMargin: root.showLabel ? 8.5 : 4
 
-    Image {
-      id: icon
+    Item {
+      id: iconSlot
       anchors.centerIn: parent
-      // ~barSize-8 so the glyph fills the chip without clipping
       width: Math.max(14, (root.bar ? root.bar.barSize : Style.bar.sizeHorizontal) - 8)
       height: width
-      source: root.iconPath
-      fillMode: Image.PreserveAspectFit
-      smooth: true
-      mipmap: true
-      visible: true
-      opacity: root.appRunning ? 1 : 0.85
+      // Clear glanceable state: full urgent tint when running, dimmer fg when stopped
+      opacity: root.appRunning ? 1.0 : 0.45
+
+      Behavior on opacity {
+        NumberAnimation { duration: 160; easing.type: Easing.OutCubic }
+      }
+
+      Image {
+        id: icon
+        anchors.centerIn: parent
+        width: parent.width
+        height: parent.height
+        source: root.iconSource
+        sourceSize.width: width * 2
+        sourceSize.height: height * 2
+        fillMode: Image.PreserveAspectFit
+        // Hidden — MultiEffect paints the themed glyph
+        visible: false
+        layer.enabled: true
+      }
+
+      MultiEffect {
+        anchors.fill: icon
+        source: icon
+        colorization: 1.0
+        colorizationColor: root.appRunning ? button.activeColor : button.foreground
+      }
     }
 
     onPressed: function(buttonCode) {

@@ -17,6 +17,7 @@ This plugin talks to the real app window over Hyprland. It does **not** embed El
 ## Why this plugin
 
 - **One chip, no clutter** — icon-only by default; optional label if you want it
+- **Themeable icon** — monochrome SVG tinted to the bar theme; lit (urgent) when running
 - **Left-click toggles visibility** — hide to a private special workspace, show tiled again; process stays alive and the chip stays lit
 - **Right-click is literal** — **Tiled** · **Floating** · **Hide** · **Close Grok Bot** (no float↔tile toggles)
 - **Omarchy-sized float** — default floating window is **875×600**, matching stock Omarchy floating windows

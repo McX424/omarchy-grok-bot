@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.13 — 2026-09-13
+- Themeable monochrome SVG chip (`assets/grok-bot.svg`) via MultiEffect colorization — tracks bar foreground / urgent like other Omarchy icons
+- Running state glanceable: urgent tint + full opacity when process is up; dimmed foreground when stopped (hidden-on-scratchpad still counts as running)
+
 ## 1.3.12 — 2026-09-11
 - Hide to dedicated `special:grokbot` instead of shared `special:scratchpad` (other bar plugins no longer unhide Grok when they toggle the shared scratchpad)
 - Still address-by-window; never `togglespecialworkspace`
