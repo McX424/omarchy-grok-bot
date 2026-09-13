@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.14 — 2026-09-13
+- README rewrite for current behavior (themeable SVG, running state, dedicated `special:grokbot`, SUPER+W)
+- Line-art symbolic chip SVG (matches other Omarchy bar icons when MultiEffect-tinted)
+- New marketplace screenshots: `preview.png` + `docs/bar.png`
+
 ## 1.3.13 — 2026-09-13
 - Themeable monochrome SVG chip (`assets/grok-bot.svg`) via MultiEffect colorization — tracks bar foreground / urgent like other Omarchy icons
 - Running state glanceable: urgent tint + full opacity when process is up; dimmed foreground when stopped (hidden-on-scratchpad still counts as running)
